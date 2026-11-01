@@ -104,6 +104,7 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         final boolean tour = getIntent() != null && getIntent().getBooleanExtra("tour", false);
+        final String screen = getIntent() != null ? getIntent().getStringExtra("screen") : null;
 
         // ek hi client: page load hone par (a) diagnostics log, (b) tour chalao
         webView.setWebViewClient(new WebViewClient() {
@@ -114,6 +115,11 @@ public class MainActivity extends Activity {
                 if (tour) {
                     v.postDelayed(() -> v.evaluateJavascript(
                             "window.startTour && window.startTour()", null), 2500);
+                }
+                if (screen != null && screen.length() > 0) {
+                    final String js = "match".equals(screen)
+                            ? "startMatch()" : ("go('" + screen + "')");
+                    v.postDelayed(() -> v.evaluateJavascript(js, null), 2000);
                 }
             }
         });
