@@ -50,11 +50,18 @@ jobs:
             set -x
             adb wait-for-device
             adb shell settings put global window_animation_scale 0 || true
+            adb shell settings put system screen_off_timeout 1800000 || true
+            adb shell svc power stayon true || true
+            adb shell input keyevent KEYCODE_WAKEUP || true
+            adb shell wm dismiss-keyguard || true
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
             mkdir -p screenshots/android
             # poori app tour (lobby -> shop -> ranks -> settings -> match -> result)
             adb shell am start --ez tour true -n com.sakura.strike/.MainActivity
-            sleep 6
+            sleep 14
+            adb shell input keyevent KEYCODE_WAKEUP || true
+            adb shell wm dismiss-keyguard || true
+            adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" > screenshots/android/focus.txt || true
             adb exec-out screencap -p > screenshots/android/01-lobby.png
             sleep 3
             adb exec-out screencap -p > screenshots/android/02-shop.png
@@ -68,7 +75,9 @@ jobs:
             adb exec-out screencap -p > screenshots/android/06-match-play.png
             sleep 3
             adb exec-out screencap -p > screenshots/android/07-result.png
-            adb logcat -d -s SakuraStrike:* > screenshots/android/logcat.txt || true
+            adb logcat -d > screenshots/android/logcat-full.txt || true
+            adb logcat -d -s SakuraStrike:* chromium:* AndroidRuntime:E > screenshots/android/logcat.txt || true
+            adb shell dumpsys window | grep -E "mCurrentFocus" > screenshots/android/focus-after.txt || true
             ls -lh screenshots/android
 
       - name: Upload screenshots
