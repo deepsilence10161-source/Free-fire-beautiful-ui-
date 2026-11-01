@@ -4,6 +4,7 @@ plugins {
 
 android {
     namespace 'com.sakura.strike'
+    // build-tools 34.0.0 default ke liye (kuch runners me 35 gayab hota hai)
     compileSdk 34
 
     defaultConfig {
@@ -12,6 +13,7 @@ android {
         targetSdk 34
         versionCode 1
         versionName "0.1"
+        buildToolsVersion "34.0.0"
     }
 
     buildTypes {
