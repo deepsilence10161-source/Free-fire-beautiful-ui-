@@ -23,6 +23,21 @@ public class MainActivity extends Activity {
 
     private WebView webView;
 
+    private static final String DIAG_JS =
+            "(function(){try{var r=function(id){var e=document.getElementById(id);" +
+            "if(!e)return 'null';var b=e.getBoundingClientRect();var cs=getComputedStyle(e);" +
+            "return {x:Math.round(b.x),y:Math.round(b.y),w:Math.round(b.width),h:Math.round(b.height)," +
+            "disp:cs.display,vis:cs.visibility,op:cs.opacity,tf:cs.transform,pos:cs.position};};" +
+            "return JSON.stringify({iw:innerWidth,ih:innerHeight,dpr:devicePixelRatio," +
+            "vw:visualViewport?Math.round(visualViewport.width):-1," +
+            "vl:visualViewport?Math.round(visualViewport.offsetLeft):-1," +
+            "vs:visualViewport?Math.round(visualViewport.scale*100)/100:-1," +
+            "sx:scrollX,sy:scrollY,de:document.documentElement.clientWidth," +
+            "dh:document.documentElement.clientHeight,db:document.body.clientWidth," +
+            "app:r('app'),title:r('screen-title'),lobby:r('screen-lobby')," +
+            "play:r('btn-play'),petals:r('petals')," +
+            "active:(document.querySelector('.screen.active')||{}).id});}catch(e){return 'ERR '+e;}})()";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +95,15 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         final boolean tour = getIntent() != null && getIntent().getBooleanExtra("tour", false);
+
+        // ---- diagnostics: layout ki asli values log me ----
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                v.postDelayed(() -> v.evaluateJavascript(DIAG_JS, value ->
+                        Log.i("SakuraStrike", "DIAG " + value)), 1200);
+            }
+        });
         if (tour) {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
