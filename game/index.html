@@ -29,7 +29,10 @@
     padding:calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
     overflow:hidden;
   }
-  .screen.active{display:flex;animation:pop .32s cubic-bezier(.2,1.5,.4,1) both}
+  /* NOTE: koi fill-mode nahi — slow device par animation late ho to bhi
+     screen visible rahe (pehle 'both' ki wajah se opacity 0 par atak jaati thi) */
+  .screen.active{display:flex;animation:pop .30s cubic-bezier(.2,1.5,.4,1)}
+  @media (prefers-reduced-motion:reduce){ .screen.active{animation:none} }
   @keyframes pop{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   @keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,143,189,.5))}50%{filter:drop-shadow(0 0 18px rgba(169,139,255,.75))}}
@@ -486,12 +489,14 @@ $("btn-reset").onclick = () => {
       al: .35 + Math.random() * .4
     };
   }
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   addEventListener("resize", resize, { passive:true });
   resize();
   let last = performance.now();
   (function loop(t){
     const dt = Math.min(.05, (t - last) / 1000); last = t;
     x.clearRect(0, 0, innerWidth, innerHeight);
+    if (reduce) { requestAnimationFrame(loop); return; }
     for (const p of ps){
       p.y += p.vy * dt; p.x += p.vx * dt; p.a += p.va * dt;
       if (p.y > innerHeight + 30) Object.assign(p, newPetal(false));

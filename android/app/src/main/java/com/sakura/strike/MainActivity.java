@@ -96,23 +96,18 @@ public class MainActivity extends Activity {
 
         final boolean tour = getIntent() != null && getIntent().getBooleanExtra("tour", false);
 
-        // ---- diagnostics: layout ki asli values log me ----
+        // ek hi client: page load hone par (a) diagnostics log, (b) tour chalao
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public void onPageFinished(WebView v, String url) {
-                v.postDelayed(() -> v.evaluateJavascript(DIAG_JS, value ->
-                        Log.i("SakuraStrike", "DIAG " + value)), 1200);
+            public void onPageFinished(final WebView v, String url) {
+                v.postDelayed(() -> v.evaluateJavascript(DIAG_JS,
+                        value -> Log.i("SakuraStrike", "DIAG " + value)), 1500);
+                if (tour) {
+                    v.postDelayed(() -> v.evaluateJavascript(
+                            "window.startTour && window.startTour()", null), 2500);
+                }
             }
         });
-        if (tour) {
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public void onPageFinished(WebView v, String url) {
-                    v.postDelayed(() -> v.evaluateJavascript(
-                            "window.startTour && window.startTour()", null), 600);
-                }
-            });
-        }
 
         webView.loadUrl("file:///android_asset/index.html");
         hideBars();
