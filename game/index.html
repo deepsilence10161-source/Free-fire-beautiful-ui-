@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#ffeaf4" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Sakura Strike 🌸</title>
+<style>
+  :root{
+    --pink:#ffb7d5; --pink-deep:#ff8fbd; --pink-soft:#ffe3f0;
+    --lav:#c9b6ff; --lav-deep:#a98bff; --mint:#a8f0d8; --peach:#ffd8bf;
+    --cream:#fff8fc; --plum:#4a2c48; --plum-soft:#7a5c78;
+    --gold:#ffd66b; --ok:#5ddba0; --bad:#ff6b8a;
+    --shadow:0 10px 0 rgba(74,44,72,.14), 0 18px 34px rgba(255,143,189,.30);
+    --r:26px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0;overflow:hidden}
+  body{
+    font-family:"Baloo 2",ui-rounded,"Segoe UI Rounded","Hiragino Maru Gothic ProN",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--plum); background:linear-gradient(160deg,#fff1f7 0%,#f6ecff 45%,#eafcf6 100%);
+    user-select:none; -webkit-user-select:none; touch-action:manipulation;
+  }
+  #petals{position:fixed;inset:0;z-index:0;pointer-events:none}
+  #app{position:fixed;inset:0;z-index:1;display:flex;align-items:center;justify-content:center}
+  .screen{
+    position:absolute;inset:0;display:none;flex-direction:column;
+    padding:calc(14px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom));
+    overflow:hidden;
+  }
+  .screen.active{display:flex;animation:pop .32s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes pop{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,143,189,.5))}50%{filter:drop-shadow(0 0 18px rgba(169,139,255,.75))}}
+
+  /* ---------- shared pieces ---------- */
+  .btn{
+    border:0;font:inherit;font-weight:800;color:#fff;cursor:pointer;
+    background:linear-gradient(180deg,var(--pink) 0%,var(--pink-deep) 100%);
+    border-radius:999px;padding:16px 26px;font-size:19px;letter-spacing:.3px;
+    box-shadow:var(--shadow);transition:transform .12s ease, filter .2s;
+    position:relative;overflow:hidden;
+  }
+  .btn:active{transform:translateY(4px) scale(.985);box-shadow:0 4px 0 rgba(74,44,72,.16)}
+  .btn.lav{background:linear-gradient(180deg,var(--lav) 0%,var(--lav-deep) 100%)}
+  .btn.mint{background:linear-gradient(180deg,#b8f7e1 0%,#6fe0b8 100%);color:#1d5c47}
+  .btn.ghost{background:rgba(255,255,255,.85);color:var(--plum);box-shadow:0 6px 0 rgba(74,44,72,.08),0 10px 24px rgba(169,139,255,.18)}
+  .btn.small{padding:10px 18px;font-size:15px;box-shadow:0 6px 0 rgba(74,44,72,.12)}
+  .btn[disabled]{filter:grayscale(.55) opacity(.6)}
+  .card{
+    background:rgba(255,255,255,.82);border-radius:var(--r);
+    box-shadow:0 8px 0 rgba(255,183,213,.28),0 16px 36px rgba(169,139,255,.18);
+    backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.9);
+  }
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1}
+  .pill{
+    display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.92);
+    border-radius:999px;padding:8px 14px;font-weight:800;font-size:14px;
+    box-shadow:0 4px 0 rgba(255,183,213,.35),0 8px 18px rgba(169,139,255,.14);
+  }
+  .pill b{font-size:15px}
+  .h1{font-size:clamp(26px,8vw,40px);margin:0;letter-spacing:.5px;line-height:1.1}
+  .muted{color:var(--plum-soft);font-weight:700;font-size:14px}
+
+  /* ---------- title ---------- */
+  #screen-title{align-items:center;justify-content:center;text-align:center;gap:14px}
+  .logo-wrap{animation:float 4.4s ease-in-out infinite;animation:float 4.4s ease-in-out infinite}
+  .logo{
+    font-size:clamp(38px,13vw,64px);font-weight:900;margin:0;line-height:.95;
+    background:linear-gradient(180deg,#fff 8%,var(--pink-deep) 52%,var(--lav-deep) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 0 rgba(255,255,255,.9)) drop-shadow(0 12px 18px rgba(169,139,255,.5));
+    animation:glow 3.4s ease-in-out infinite;
+  }
+  .logo small{display:block;font-size:.34em;letter-spacing:6px;color:var(--plum-soft);
+    -webkit-text-fill-color:var(--plum-soft);margin-top:8px;font-weight:800}
+  .tag{margin:4px 0 10px;font-weight:800;color:var(--plum-soft);font-size:15px}
+  .title-actions{display:flex;flex-direction:column;gap:12px;width:min(340px,86vw);margin-top:6px}
+  .ver{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));font-size:12px;color:var(--plum-soft);font-weight:700;opacity:.75}
+
+  /* ---------- lobby ---------- */
+  #screen-lobby{gap:12px}
+  .topbar{display:flex;align-items:center;gap:8px}
+  .avatar-card{display:flex;gap:14px;padding:16px;align-items:center}
+  .avatar{
+    width:76px;height:76px;border-radius:24px;flex:0 0 auto;
+    background:linear-gradient(160deg,#fff,#ffe3f0);
+    box-shadow:inset 0 -6px 0 rgba(255,183,213,.5),0 8px 20px rgba(255,143,189,.35);
+    display:grid;place-items:center;font-size:40px;
+  }
+  .lvlbar{height:10px;border-radius:99px;background:rgba(74,44,72,.10);overflow:hidden;margin-top:8px}
+  .lvlbar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pink-deep),var(--lav-deep));transition:width .5s}
+  .play-wrap{margin-top:auto;display:flex;flex-direction:column;gap:10px;align-items:center}
+  .btn-play{
+    font-size:26px;padding:20px 44px;border-radius:999px;width:min(360px,90vw);
+    background:linear-gradient(180deg,#ffd0e4 0%,var(--pink-deep) 62%,#f06fa6 100%);
+    box-shadow:0 12px 0 #e2649a,0 22px 40px rgba(255,111,166,.45);
+    animation:float 3s ease-in-out infinite;
+  }
+  .nav{display:flex;gap:8px;justify-content:center;margin-top:4px}
+  .nav button{
+    border:0;font:inherit;font-weight:800;font-size:12.5px;color:var(--plum-soft);
+    background:rgba(255,255,255,.86);border-radius:18px;padding:9px 12px;
+    box-shadow:0 5px 0 rgba(255,183,213,.4);display:flex;flex-direction:column;align-items:center;gap:3px;
+  }
+  .nav button span{font-size:19px;line-height:1}
+  .nav button:active{transform:translateY(3px)}
+  .mode-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+  .mode-strip::-webkit-scrollbar{display:none}
+  .mode{
+    flex:0 0 auto;padding:12px 16px;border-radius:20px;font-weight:800;font-size:13.5px;
+    background:rgba(255,255,255,.8);box-shadow:0 6px 0 rgba(201,182,255,.4);color:var(--plum-soft);
+    display:flex;gap:8px;align-items:center;
+  }
+  .mode.on{background:linear-gradient(180deg,#fff,#ffe3f0);color:var(--plum);box-shadow:0 6px 0 var(--lav)}
+
+  /* ---------- shop / panels ---------- */
+  .panel-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .back{border:0;background:rgba(255,255,255,.9);width:44px;height:44px;border-radius:16px;font-size:20px;
+    box-shadow:0 5px 0 rgba(255,183,213,.45);cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow-y:auto;padding-bottom:16px}
+  .skin{padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+  .skin .swatch{width:100%;height:86px;border-radius:18px;display:grid;place-items:center;font-size:38px;
+    box-shadow:inset 0 -8px 0 rgba(74,44,72,.08)}
+  .skin .name{font-weight:800;font-size:14px}
+  .skin .price{font-weight:800;font-size:13px;color:var(--plum-soft)}
+  .skin.owned{outline:3px solid var(--mint);outline-offset:-3px}
+  .skin.equipped{outline:3px solid var(--pink-deep);outline-offset:-3px}
+  .stat-row{display:flex;justify-content:space-between;padding:12px 4px;border-bottom:2px dashed rgba(74,44,72,.09);font-weight:800;font-size:15px}
+  .stat-row span:last-child{color:var(--lav-deep)}
+  .switch{width:56px;height:32px;border-radius:99px;background:rgba(74,44,72,.14);position:relative;transition:.2s;cursor:pointer;flex:0 0 auto}
+  .switch i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:99px;background:#fff;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .switch.on{background:linear-gradient(90deg,var(--pink-deep),var(--lav-deep))}
+  .switch.on i{left:27px}
+
+  /* ---------- game ---------- */
+  #screen-game{padding:0;background:#1b3b3a}
+  #game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  .hud{position:absolute;inset:0;pointer-events:none}
+  .hud-top{
+    position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;
+    display:flex;align-items:flex-start;gap:8px
+  }
+  .hpwrap{flex:1;max-width:210px}
+  .hpb{height:16px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden;
+    box-shadow:0 0 0 2px rgba(255,255,255,.55)}
+  .hpb>i{display:block;height:100%;width:100%;border-radius:99px;
+    background:linear-gradient(90deg,#7ff0bd,#5ddba0);transition:width .18s}
+  .hud .badge{background:rgba(255,255,255,.94);color:var(--plum);border-radius:999px;padding:6px 12px;font-weight:900;font-size:14px;
+    box-shadow:0 4px 0 rgba(0,0,0,.18)}
+  .stick{
+    position:absolute;bottom:calc(22px + env(safe-area-inset-bottom));left:20px;
+    width:132px;height:132px;border-radius:99px;
+    background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.30),rgba(255,255,255,.12));
+    box-shadow:0 0 0 2px rgba(255,255,255,.5) inset;pointer-events:auto;touch-action:none;
+  }
+  .stick i{
+    position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:99px;
+    background:linear-gradient(180deg,#fff,#ffd7e8);box-shadow:0 6px 14px rgba(0,0,0,.25);
+  }
+  .fire{
+    position:absolute;bottom:calc(30px + env(safe-area-inset-bottom));right:22px;
+    width:106px;height:106px;border-radius:99px;pointer-events:auto;border:0;
+    background:radial-gradient(circle at 40% 32%,#fff3f9,#ff9ec5 60%,#f06fa6);
+    box-shadow:0 10px 0 #d1548a,0 16px 30px rgba(0,0,0,.35);font-size:34px;
+    display:grid;place-items:center;color:#fff;touch-action:none;
+  }
+  .fire:active{transform:translateY(2px) scale(.97)}
+  .pausebtn{
+    position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;pointer-events:auto;
+    width:44px;height:44px;border-radius:16px;border:0;background:rgba(255,255,255,.92);font-size:18px;
+    box-shadow:0 4px 0 rgba(0,0,0,.2)
+  }
+  .toast{
+    position:absolute;left:50%;top:26%;transform:translateX(-50%);
+    background:rgba(74,44,72,.9);color:#fff;padding:10px 18px;border-radius:999px;font-weight:800;font-size:14px;
+    opacity:0;transition:.25s;pointer-events:none;white-space:nowrap
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  .overlay{position:absolute;inset:0;background:rgba(27,59,58,.72);backdrop-filter:blur(6px);
+    display:none;place-items:center;padding:20px;pointer-events:auto}
+  .overlay.show{display:grid}
+  .overlay .card{padding:24px;text-align:center;width:min(360px,92vw)}
+  .res-title{font-size:30px;margin:0 0 6px}
+  .reward{font-size:22px;font-weight:900;color:var(--lav-deep);margin:10px 0}
+  .stars{font-size:30px;letter-spacing:4px;margin:2px 0 6px}
+</style>
+</head>
+<body>
+<canvas id="petals"></canvas>
+<div id="app">
+
+  <!-- ================= TITLE ================= -->
+  <section id="screen-title" class="screen active">
+    <div class="logo-wrap">
+      <h1 class="logo">Sakura<br>Strike<small>さくら ストライク</small></h1>
+    </div>
+    <p class="tag">cute • shant • 40-player battle royale</p>
+    <div class="title-actions">
+      <button class="btn" id="btn-start">🌸 शुरू करो</button>
+      <button class="btn ghost" id="btn-continue">आगे बढ़ो</button>
+    </div>
+    <div class="ver">v0.1 prototype · made for you 💗</div>
+  </section>
+
+  <!-- ================= LOBBY ================= -->
+  <section id="screen-lobby" class="screen">
+    <div class="topbar">
+      <div class="pill">🪙 <b id="ui-coins">0</b></div>
+      <div class="grow"></div>
+      <div class="pill">🏆 <b id="ui-high">0</b></div>
+    </div>
+
+    <div class="card avatar-card">
+      <div class="avatar" id="ui-avatar">🌸</div>
+      <div class="grow">
+        <div class="row"><b id="ui-name" style="font-size:18px">Sakura</b>
+          <span class="pill" style="padding:3px 10px;font-size:12px">Lv <b id="ui-lvl">1</b></span></div>
+        <div class="muted" id="ui-skinname">Sakura Classic</div>
+        <div class="lvlbar"><i id="ui-xpbar" style="width:20%"></i></div>
+      </div>
+    </div>
+
+    <div class="mode-strip">
+      <div class="mode on">🎯 Classic</div>
+      <div class="mode">⚡ Blitz</div>
+      <div class="mode">🛡️ Training</div>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <div class="muted" style="margin-bottom:6px">🎯 मिशन</div>
+      <div style="font-weight:800;font-size:15px">8 bots को हराओ · safe zone में रहो</div>
+      <div class="muted" style="margin-top:4px">इनाम: 🪙 60 + हर kill पर 12</div>
+    </div>
+
+    <div class="play-wrap">
+      <button class="btn btn-play" id="btn-play">▶ PLAY</button>
+      <div class="nav">
+        <button id="nav-shop"><span>👗</span>Shop</button>
+        <button id="nav-rank"><span>🏅</span>Ranks</button>
+        <button id="nav-set"><span>⚙️</span>Settings</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SHOP ================= -->
+  <section id="screen-shop" class="screen">
+    <div class="panel-head">
+      <button class="back" data-back>←</button>
+      <h2 class="h1" style="font-size:24px">Shop 👗</h2>
+      <div class="grow"></div>
+      <div class="pill">🪙 <b id="ui-coins2">0</b></div>
+    </div>
+    <div class="grid" id="shop-grid"></div>
+  </section>
+
+  <!-- ================= RANKS ================= -->
+  <section id="screen-rank" class="screen">
+    <div class="panel-head">
+      <button class="back" data-back>←</button>
+      <h2 class="h1" style="font-size:24px">Ranks 🏅</h2>
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="stat-row"><span>Total matches</span><span id="st-matches">0</span></div>
+      <div class="stat-row"><span>Total kills</span><span id="st-kills">0</span></div>
+      <div class="stat-row"><span>Best kills (1 match)</span><span id="st-best">0</span></div>
+      <div class="stat-row"><span>Wins</span><span id="st-wins">0</span></div>
+      <div class="stat-row" style="border:0"><span>Level</span><span id="st-lvl">1</span></div>
+    </div>
+    <p class="muted" style="text-align:center;margin-top:14px">जीतो, XP कमाओ, नए skin खोलो 🌸</p>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <section id="screen-set" class="screen">
+    <div class="panel-head">
+      <button class="back" data-back>←</button>
+      <h2 class="h1" style="font-size:24px">Settings ⚙️</h2>
+    </div>
+    <div class="card" style="padding:16px;display:flex;flex-direction:column;gap:14px">
+      <div class="row"><div class="grow"><b>Sound</b><div class="muted">छोटे cute beep</div></div>
+        <div class="switch" id="sw-sound"><i></i></div></div>
+      <div class="row"><div class="grow"><b>Aim assist</b><div class="muted">auto-aim (accuracy)</div></div>
+        <div class="switch on" id="sw-aim"><i></i></div></div>
+      <div class="row"><div class="grow"><b>Particles</b><div class="muted">फूल, धूल, sparkle</div></div>
+        <div class="switch on" id="sw-fx"><i></i></div></div>
+    </div>
+    <div style="margin-top:14px"><button class="btn ghost" id="btn-reset" style="width:100%">प्रगति रीसेट करो</button></div>
+    <div class="muted" style="text-align:center;margin-top:auto">Sakura Strike v0.1 · अपना code, अपनी कला 🌸</div>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="screen">
+    <canvas id="game"></canvas>
+    <div class="hud">
+      <div class="hud-top">
+        <div class="hpwrap"><div class="hpb"><i id="hud-hp"></i></div></div>
+        <div class="badge" id="hud-kills">🎯 0/8</div>
+        <div class="badge" id="hud-time">⏱ 90</div>
+      </div>
+      <div class="stick" id="stick"><i id="stick-knob"></i></div>
+      <button class="fire" id="btn-fire">🔫</button>
+      <button class="pausebtn" id="btn-pause">⏸</button>
+      <div class="toast" id="toast"></div>
+    </div>
+  </section>
+
+  <!-- ================= RESULT ================= -->
+  <section id="screen-result" class="screen" style="justify-content:center">
+    <div class="card" style="padding:24px;text-align:center">
+      <h2 class="res-title" id="res-title">तुम जीत गए! 🌸</h2>
+      <div class="stars" id="res-stars">⭐⭐⭐</div>
+      <div class="muted" id="res-sub">बहुत प्यारा खेल!</div>
+      <div class="reward" id="res-reward">+0 🪙</div>
+      <button class="btn" id="res-again" style="width:100%;margin-top:6px">फिर खेलो</button>
+      <button class="btn ghost" id="res-home" style="width:100%;margin-top:10px">लॉबी</button>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Sakura Strike — v0.1 prototype
+   Original code + original art (canvas shapes). No copyrighted assets.
+   ===================================================================== */
+
+/* ---------------- save ---------------- */
+const SAVE_KEY = "sakura_strike_v1";
+const DEFAULT_SAVE = {
+  coins: 0, level: 1, xp: 0,
+  matches: 0, kills: 0, wins: 0, best: 0,
+  owned: ["classic"], skin: "classic",
+  sound: false, aim: true, fx: true
+};
+let S = load();
+function load(){
+  try { return Object.assign({}, DEFAULT_SAVE, JSON.parse(localStorage.getItem(SAVE_KEY) || "{}")); }
+  catch(e){ return Object.assign({}, DEFAULT_SAVE); }
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------------- skins ---------------- */
+const SKINS = [
+  { id:"classic", name:"Sakura Classic", face:"🌸", price:0,   hair:"#ffb7d5", hair2:"#ff8fbd", cloth:"#fff1f7", accent:"#c9b6ff" },
+  { id:"mint",    name:"Mint Bunny",     face:"🐰", price:150, hair:"#a8f0d8", hair2:"#6fe0b8", cloth:"#f2fffb", accent:"#ffd6a5" },
+  { id:"lav",     name:"Lavender Dream", face:"💜", price:250, hair:"#c9b6ff", hair2:"#a98bff", cloth:"#f7f2ff", accent:"#ffb7d5" },
+  { id:"sunset",  name:"Sunset Fox",     face:"🦊", price:400, hair:"#ffb08a", hair2:"#ff8a5c", cloth:"#fff6ef", accent:"#7ff0bd" },
+  { id:"moon",    name:"Moon Cat",       face:"🐱", price:600, hair:"#9fd8ff", hair2:"#6fb6f0", cloth:"#f3faff", accent:"#ffd66b" },
+  { id:"candy",   name:"Candy Star",     face:"⭐", price:800, hair:"#ffd0e4", hair2:"#ff6fa6", cloth:"#fffbe8", accent:"#8fe3ff" }
+];
+const skinOf = id => SKINS.find(s => s.id === id) || SKINS[0];
+
+/* ---------------- audio (tiny synth) ---------------- */
+let AC = null;
+function beep(freq, dur, type, vol){
+  if (!S.sound) return;
+  try{
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.value = vol == null ? 0.05 : vol;
+    o.connect(g); g.connect(AC.destination);
+    const t = AC.currentTime;
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || .12));
+    o.start(t); o.stop(t + (dur || .12) + .02);
+  }catch(e){}
+}
+
+/* ---------------- screens ---------------- */
+const screens = {};
+document.querySelectorAll(".screen").forEach(el => screens[el.id.replace("screen-", "")] = el);
+let current = "title";
+function go(name){
+  Object.values(screens).forEach(el => el.classList.remove("active"));
+  if (screens[name]) screens[name].classList.add("active");
+  current = name;
+  if (name === "lobby") renderLobby();
+  if (name === "shop") renderShop();
+  if (name === "rank") renderRank();
+  if (name === "set") renderSettings();
+}
+
+/* ---------------- UI render ---------------- */
+const $ = id => document.getElementById(id);
+function renderLobby(){
+  const sk = skinOf(S.skin);
+  $("ui-coins").textContent = S.coins;
+  $("ui-coins2").textContent = S.coins;
+  $("ui-high").textContent = S.best;
+  $("ui-lvl").textContent = S.level;
+  $("ui-avatar").textContent = sk.face;
+  $("ui-avatar").style.background = "linear-gradient(160deg,#fff," + sk.hair + ")";
+  $("ui-skinname").textContent = sk.name;
+  $("ui-xpbar").style.width = Math.min(100, (S.xp % 100)) + "%";
+}
+$("btn-start").onclick = () => { initAudio(); go("lobby"); };
+$("btn-continue").onclick = () => go("lobby");
+$("nav-shop").onclick = () => go("shop");
+$("nav-rank").onclick = () => go("rank");
+$("nav-set").onclick = () => go("set");
+document.querySelectorAll("[data-back]").forEach(b => b.onclick = () => go("lobby"));
+
+function initAudio(){
+  if (!S.sound) return;
+  try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch(e){}
+}
+
+function renderShop(){
+  $("ui-coins2").textContent = S.coins;
+  const grid = $("shop-grid");
+  grid.innerHTML = "";
+  SKINS.forEach(sk => {
+    const owned = S.owned.indexOf(sk.id) >= 0;
+    const eq = S.skin === sk.id;
+    const d = document.createElement("div");
+    d.className = "card skin" + (owned ? " owned" : "") + (eq ? " equipped" : "");
+    d.innerHTML =
+      '<div class="swatch" style="background:linear-gradient(160deg,#fff,' + sk.hair + ' 70%,' + sk.accent + ')">' + sk.face + '</div>' +
+      '<div class="name">' + sk.name + '</div>' +
+      '<div class="price">' + (eq ? "✅ लगा हुआ" : owned ? "खुला है" : "🪙 " + sk.price) + '</div>';
+    const b = document.createElement("button");
+    b.className = "btn small " + (eq ? "mint" : owned ? "lav" : "");
+    b.textContent = eq ? "लगा है" : owned ? "पहनो" : "खरीदो";
+    if (eq) b.disabled = true;
+    b.onclick = () => {
+      if (owned){ S.skin = sk.id; save(); renderShop(); beep(660, .1, "triangle"); }
+      else if (S.coins >= sk.price){ S.coins -= sk.price; S.owned.push(sk.id); S.skin = sk.id; save(); renderShop(); beep(880, .18, "sine"); }
+      else { toastIn(($("toast")), "🪙 कम हैं — थोड़ा और खेलो!"); beep(200, .16, "sawtooth", .04); }
+    };
+    d.appendChild(b);
+    grid.appendChild(d);
+  });
+}
+
+function renderRank(){
+  $("st-matches").textContent = S.matches;
+  $("st-kills").textContent = S.kills;
+  $("st-best").textContent = S.best;
+  $("st-wins").textContent = S.wins;
+  $("st-lvl").textContent = S.level;
+}
+
+function renderSettings(){
+  [["sw-sound","sound"],["sw-aim","aim"],["sw-fx","fx"]].forEach(([id,key]) => {
+    const el = $(id);
+    el.classList.toggle("on", !!S[key]);
+    el.onclick = () => {
+      S[key] = !S[key]; save(); el.classList.toggle("on", !!S[key]);
+      if (key === "sound" && S.sound) { initAudio(); beep(740, .12, "sine"); }
+    };
+  });
+}
+$("btn-reset").onclick = () => {
+  if (!confirm("पूरी प्रगति मिट जाएगी। पक्का?")) return;
+  S = Object.assign({}, DEFAULT_SAVE, { owned:["classic"] });
+  save(); renderLobby(); go("lobby");
+};
+
+/* ---------------- petals background ---------------- */
+(function petals(){
+  const c = $("petals"), x = c.getContext("2d");
+  let w = 0, h = 0, ps = [];
+  function resize(){
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    w = c.width = innerWidth * dpr; h = c.height = innerHeight * dpr;
+    c.style.width = innerWidth + "px"; c.style.height = innerHeight + "px";
+    x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(innerWidth / 16);
+    ps = []; for (let i = 0; i < n; i++) ps.push(newPetal(true));
+  }
+  function newPetal(any){
+    return {
+      x: Math.random() * innerWidth,
+      y: any ? Math.random() * innerHeight : -20,
+      r: 3 + Math.random() * 5,
+      vy: 12 + Math.random() * 26,
+      vx: -14 + Math.random() * 28,
+      a: Math.random() * Math.PI * 2,
+      va: -1.4 + Math.random() * 2.8,
+      hue: Math.random() < .5 ? 340 : (Math.random() < .5 ? 275 : 160),
+      al: .35 + Math.random() * .4
+    };
+  }
+  addEventListener("resize", resize, { passive:true });
+  resize();
+  let last = performance.now();
+  (function loop(t){
+    const dt = Math.min(.05, (t - last) / 1000); last = t;
+    x.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of ps){
+      p.y += p.vy * dt; p.x += p.vx * dt; p.a += p.va * dt;
+      if (p.y > innerHeight + 30) Object.assign(p, newPetal(false));
+      x.save(); x.translate(p.x, p.y); x.rotate(p.a);
+      x.fillStyle = "hsla(" + p.hue + ",100%,80%," + p.al + ")";
+      x.beginPath();
+      x.ellipse(0, 0, p.r * 1.5, p.r, 0, 0, Math.PI * 2);
+      x.fill(); x.restore();
+    }
+    requestAnimationFrame(loop);
+  })(last);
+})();
+
+/* ---------------- toast ---------------- */
+let toastT = 0;
+function toastIn(el, msg){
+  if (!el) return;
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1500);
+}
+
+/* =====================================================================
+   GAME
+   ===================================================================== */
+const cv = $("game"), cx = cv.getContext("2d");
+let DPR = 1, W = 0, H = 0;
+
+const G = {
+  run: false, paused: false, over: false,
+  t: 0, left: 90, kills: 0, need: 8, spawnT: 0,
+  player: null, bullets: [], enemies: [], ebullets: [], parts: [], pickups: [],
+  zone: { x: 0, y: 0, r: 400 }, zoneMin: 140, shake: 0
+};
+
+function resizeGame(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+addEventListener("resize", () => { if (current === "game") resizeGame(); }, { passive:true });
+
+function startMatch(){
+  resizeGame();
+  G.run = true; G.paused = false; G.over = false;
+  G.t = 0; G.left = 90; G.kills = 0; G.spawnT = .4;
+  G.bullets = []; G.enemies = []; G.ebullets = []; G.parts = []; G.pickups = [];
+  G.zone = { x: W / 2, y: H / 2, r: Math.max(W, H) * .62 };
+  G.zoneMin = Math.min(W, H) * .30;
+  G.shake = 0;
+  G.player = {
+    x: W / 2, y: H / 2, r: 17, hp: 100, hpMax: 100, ang: -Math.PI / 2,
+    speed: Math.min(210, Math.max(150, Math.min(W, H) * .34)), cool: 0
+  };
+  // obstacles
+  for (let i = 0; i < 7; i++){
+    const ox = 40 + Math.random() * (W - 80), oy = 90 + Math.random() * (H - 180);
+    if (Math.hypot(ox - G.player.x, oy - G.player.y) < 110) continue;
+    G.obstacles = (G.obstacles || []);
+    G.obstacles.push({ x: ox, y: oy, r: 16 + Math.random() * 16, kind: Math.random() < .5 ? "tree" : "rock" });
+  }
+  updateHud();
+  go("game");
+  initAudio();
+  beep(520, .16, "sine");
+}
+
+/* ---------- input ---------- */
+const input = { x: 0, y: 0, firing: false };
+const stick = $("stick"), knob = $("stick-knob");
+let stickId = null, stickC = { x: 0, y: 0 };
+function stickStart(e){
+  const t = e.changedTouches ? e.changedTouches[0] : e;
+  const r = stick.getBoundingClientRect();
+  stickC = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  stickId = t.identifier == null ? "m" : t.identifier;
+  stickMove(e);
+}
+function stickMove(e){
+  if (e.changedTouches){
+    let t = null;
+    for (const c of e.changedTouches) if (c.identifier === stickId) t = c;
+    if (!t) return;
+    var pt = t;
+  } else { var pt = e; }
+  let dx = pt.clientX - stickC.x, dy = pt.clientY - stickC.y;
+  const max = 46, m = Math.hypot(dx, dy);
+  if (m > max){ dx = dx / m * max; dy = dy / m * max; }
+  knob.style.transform = "translate(" + dx + "px," + dy + "px)";
+  input.x = dx / max; input.y = dy / max;
+}
+function stickEnd(){
+  stickId = null; input.x = 0; input.y = 0;
+  knob.style.transform = "translate(0,0)";
+}
+stick.addEventListener("touchstart", e => { e.preventDefault(); stickStart(e); }, { passive:false });
+stick.addEventListener("touchmove", e => { e.preventDefault(); stickMove(e); }, { passive:false });
+stick.addEventListener("touchend", e => { e.preventDefault(); stickEnd(); }, { passive:false });
+stick.addEventListener("touchcancel", stickEnd);
+stick.addEventListener("mousedown", e => { e.preventDefault(); stickStart(e); });
+addEventListener("mousemove", e => { if (stickId === "m") stickMove(e); });
+addEventListener("mouseup", () => { if (stickId === "m") stickEnd(); });
+
+const fireBtn = $("btn-fire");
+function fireOn(e){ if (e) e.preventDefault(); input.firing = true; }
+function fireOff(){ input.firing = false; }
+fireBtn.addEventListener("touchstart", fireOn, { passive:false });
+fireBtn.addEventListener("touchend", fireOff);
+fireBtn.addEventListener("touchcancel", fireOff);
+fireBtn.addEventListener("mousedown", fireOn);
+addEventListener("mouseup", fireOff);
+
+/* keyboard for desktop testing */
+const keys = {};
+addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === " " && current === "game") { input.firing = true; e.preventDefault(); }
+});
+addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+  if (e.key === " ") input.firing = false;
+});
+function keyboardVec(){
+  let x = 0, y = 0;
+  if (keys["a"] || keys["arrowleft"]) x -= 1;
+  if (keys["d"] || keys["arrowright"]) x += 1;
+  if (keys["w"] || keys["arrowup"]) y -= 1;
+  if (keys["s"] || keys["arrowdown"]) y += 1;
+  const m = Math.hypot(x, y) || 1;
+  return { x: x / m, y: y / m };
+}
+
+/* mouse aim (desktop) */
+let mouse = { x: 0, y: 0, has: false };
+cv.addEventListener("mousemove", e => {
+  const r = cv.getBoundingClientRect();
+  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; mouse.has = true;
+});
+cv.addEventListener("mousedown", e => { if (e.pointerType !== "touch") input.firing = true; });
+cv.addEventListener("mouseup", () => { input.firing = false; });
+
+$("btn-pause").onclick = () => {
+  if (!G.run) return;
+  G.paused = !G.paused;
+  $("btn-pause").textContent = G.paused ? "▶" : "⏸";
+  toastIn($("toast"), G.paused ? "⏸ रुका हुआ" : "▶ चलो!");
+};
+
+/* ---------- helpers ---------- */
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function spark(x, y, color, n, spd){
+  if (!S.fx) return;
+  for (let i = 0; i < (n || 8); i++){
+    const a = Math.random() * Math.PI * 2, s = rnd(40, spd || 190);
+    G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(.25, .6), age: 0, color: color, r: rnd(1.5, 3.6) });
+  }
+}
+
+/* ---------- chibi drawing ---------- */
+function drawChibi(ctx, x, y, r, ang, sk, hurt, walk, isBot){
+  ctx.save();
+  ctx.translate(x, y);
+  // shadow
+  ctx.fillStyle = "rgba(20,40,40,.22)";
+  ctx.beginPath(); ctx.ellipse(0, r * .92, r * .86, r * .34, 0, 0, Math.PI * 2); ctx.fill();
+  // body
+  ctx.fillStyle = hurt ? "#ffdbe4" : sk.cloth;
+  ctx.strokeStyle = "rgba(74,44,72,.24)"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(-r * .62, -r * .1, r * 1.24, r * 1.05, r * .42)
+                : ctx.rect(-r * .62, -r * .1, r * 1.24, r * 1.05);
+  ctx.fill(); ctx.stroke();
+  // arms
+  ctx.fillStyle = sk.accent;
+  ctx.beginPath(); ctx.ellipse(-r * .72, r * .3, r * .2, r * .3, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r * .72, r * .3, r * .2, r * .3, 0, 0, 7); ctx.fill();
+  // head
+  const bob = walk ? Math.sin(G.t * 14) * 1.6 : 0;
+  ctx.fillStyle = hurt ? "#ffe9ef" : "#fff4f9";
+  ctx.strokeStyle = "rgba(74,44,72,.26)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, -r * .55 + bob, r * .82, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // hair
+  ctx.fillStyle = sk.hair;
+  ctx.beginPath(); ctx.arc(0, -r * .62 + bob, r * .84, Math.PI * 1.02, Math.PI * 1.98); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-r * .78, -r * .42 + bob, r * .26, r * .42, .3, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r * .78, -r * .42 + bob, r * .26, r * .42, -.3, 0, 7); ctx.fill();
+  ctx.fillStyle = sk.hair2;
+  ctx.beginPath(); ctx.ellipse(0, -r * 1.16 + bob, r * .30, r * .19, 0, 0, 7); ctx.fill();
+  // eyes
+  const ex = r * .30, ey = -r * .55 + bob;
+  ctx.fillStyle = "#4a2c48";
+  ctx.beginPath(); ctx.ellipse(-ex, ey, r * .13, r * .17, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(ex, ey, r * .13, r * .17, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.beginPath(); ctx.arc(-ex + r * .05, ey - r * .07, r * .05, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex + r * .05, ey - r * .07, r * .05, 0, 7); ctx.fill();
+  // blush
+  ctx.fillStyle = "rgba(255,143,189,.45)";
+  ctx.beginPath(); ctx.ellipse(-r * .55, ey + r * .22, r * .16, r * .09, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r * .55, ey + r * .22, r * .16, r * .09, 0, 0, 7); ctx.fill();
+  // gun
+  ctx.save();
+  ctx.rotate(ang);
+  ctx.fillStyle = isBot ? "#8f7fb8" : "#a98bff";
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(r * .55, -r * .16, r * .95, r * .32, 4) : ctx.rect(r * .55, -r * .16, r * .95, r * .32);
+  ctx.fill();
+  ctx.fillStyle = "#ffd66b";
+  ctx.beginPath(); ctx.arc(r * .62, 0, r * .09, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+
+/* ---------- spawning ---------- */
+function spawnEnemy(){
+  const edge = Math.floor(rnd(0, 4));
+  let x, y, pad = 34;
+  if (edge === 0){ x = rnd(pad, W - pad); y = -pad; }
+  else if (edge === 1){ x = W + pad; y = rnd(pad, H - pad); }
+  else if (edge === 2){ x = rnd(pad, W - pad); y = H + pad; }
+  else { x = -pad; y = rnd(pad, H - pad); }
+  // spawn inside zone when zone is small
+  if (Math.hypot(x - G.zone.x, y - G.zone.y) > G.zone.r * .92){
+    const a = Math.random() * Math.PI * 2, d = G.zone.r * rnd(.4, .85);
+    x = clamp(G.zone.x + Math.cos(a) * d, pad, W - pad);
+    y = clamp(G.zone.y + Math.sin(a) * d, pad, H - pad);
+  }
+  const pals = [
+    { face:"🐺", hair:"#c9b6ff", hair2:"#a98bff", cloth:"#fff", accent:"#ffb7d5" },
+    { face:"🐻", hair:"#ffd6a5", hair2:"#ffb08a", cloth:"#fff", accent:"#8fe3ff" },
+    { face:"🐼", hair:"#b9c6e8", hair2:"#93a4d1", cloth:"#fff", accent:"#ffd66b" }
+  ];
+  G.enemies.push({
+    x, y, r: 16, hp: 100, ang: 0, sk: pals[Math.floor(rnd(0, pals.length))],
+    speed: rnd(52, 82), cool: rnd(.6, 1.6), hurt: 0, walk: true, isBot: true,
+    jitter: rnd(0, 6.28)
+  });
+}
+
+/* ---------- update ---------- */
+function update(dt){
+  const p = G.player;
+  G.t += dt;
+  if (G.paused || G.over) return;
+
+  G.left -= dt;
+  if (G.left <= 0) return endMatch(true);
+
+  // zone shrink
+  const target = G.zoneMin + (Math.max(W, H) * .62 - G.zoneMin) * clamp(G.left / 90, 0, 1);
+  G.zone.r += (target - G.zone.r) * dt * .9;
+  G.zone.x += (W / 2 - G.zone.x) * dt * .3;
+  G.zone.y += (H / 2 - G.zone.y) * dt * .3;
+
+  // movement
+  const kv = keyboardVec();
+  let mx = input.x + kv.x, my = input.y + kv.y;
+  const mm = Math.hypot(mx, my);
+  if (mm > 1){ mx /= mm; my /= mm; }
+  const walking = Math.hypot(mx, my) > .08;
+  p.x = clamp(p.x + mx * p.speed * dt, p.r + 6, W - p.r - 6);
+  p.y = clamp(p.y + my * p.speed * dt, p.r + 6, H - p.r - 6);
+
+  // obstacle collision
+  (G.obstacles || []).forEach(o => {
+    const d = Math.hypot(p.x - o.x, p.y - o.y), min = p.r + o.r;
+    if (d < min && d > 0.001){
+      const nx = (p.x - o.x) / d, ny = (p.y - o.y) / d;
+      p.x = o.x + nx * min; p.y = o.y + ny * min;
+    }
+  });
+  G.player.walk = walking;
+
+  // aim
+  let aimAng = p.ang;
+  if (mouse.has && mm === 0 && !input.firing) {
+    aimAng = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+  }
+  if (S.aim){
+    let best = null, bd = 1e9;
+    for (const e of G.enemies){
+      if (e.hp <= 0) continue;
+      const d = Math.hypot(e.x - p.x, e.y - p.y);
+      if (d < bd && d < 460){ bd = d; best = e; }
+    }
+    if (best) aimAng = Math.atan2(best.y - p.y, best.x - p.x);
+    else if (walking) aimAng = Math.atan2(my, mx);
+  } else if (walking && !mouse.has){
+    aimAng = Math.atan2(my, mx);
+  } else if (mouse.has){
+    aimAng = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+  }
+  p.ang = aimAng;
+
+  // shooting
+  p.cool -= dt;
+  if (input.firing && p.cool <= 0){
+    p.cool = .16;
+    G.bullets.push({
+      x: p.x + Math.cos(p.ang) * 30, y: p.y + Math.sin(p.ang) * 30,
+      vx: Math.cos(p.ang) * 620, vy: Math.sin(p.ang) * 620, life: 1.1, r: 4
+    });
+    spark(p.x + Math.cos(p.ang) * 34, p.y + Math.sin(p.ang) * 34, "#ffd66b", 3, 90);
+    beep(760, .05, "square", .025);
+    G.shake = Math.min(6, G.shake + 1.4);
+  }
+
+  // spawn
+  G.spawnT -= dt;
+  const alive = G.enemies.filter(e => e.hp > 0).length;
+  if (G.spawnT <= 0 && alive < 4 && G.kills < G.need){
+    spawnEnemy(); G.spawnT = Math.max(.8, 2.2 - G.kills * .14);
+  }
+
+  // bullets
+  for (const b of G.bullets){
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    for (const e of G.enemies){
+      if (e.hp <= 0) continue;
+      if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + b.r){
+        e.hp -= 34; e.hurt = .18; b.life = 0;
+        spark(b.x, b.y, "#ff8fbd", 7, 170);
+        beep(300, .06, "triangle", .03);
+        if (e.hp <= 0){
+          G.kills++;
+          spark(e.x, e.y, "#c9b6ff", 16, 230);
+          beep(980, .18, "sine", .05);
+          updateHud();
+          if (G.kills >= G.need) endMatch(true);
+        }
+        break;
+      }
+    }
+    for (const o of (G.obstacles || [])){
+      if (b.life > 0 && Math.hypot(b.x - o.x, b.y - o.y) < o.r){ b.life = 0; spark(b.x, b.y, "#cfd8c9", 5, 120); }
+    }
+    if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30) b.life = 0;
+  }
+  G.bullets = G.bullets.filter(b => b.life > 0);
+
+  // enemies
+  for (const e of G.enemies){
+    if (e.hp <= 0) continue;
+    e.hurt = Math.max(0, e.hurt - dt);
+    const d = Math.hypot(p.x - e.x, p.y - e.y) || 1;
+    e.ang = Math.atan2(p.y - e.y, p.x - e.x);
+    const want = 210; // preferred distance
+    let dir = d > want ? 1 : -1;
+    e.jitter += dt;
+    const sway = Math.sin(e.jitter * 1.7) * .55;
+    const ax = (p.x - e.x) / d, ay = (p.y - e.y) / d;
+    let vx = (ax * dir - ay * sway) * e.speed;
+    let vy = (ay * dir + ax * sway) * e.speed;
+    e.x = clamp(e.x + vx * dt, 14, W - 14);
+    e.y = clamp(e.y + vy * dt, 14, H - 14);
+    e.walk = true;
+
+    // fire
+    e.cool -= dt;
+    if (e.cool <= 0 && d < 420){
+      e.cool = rnd(1.1, 2.0);
+      const a = e.ang + rnd(-.09, .09);
+      G.ebullets.push({ x: e.x + Math.cos(a) * 26, y: e.y + Math.sin(a) * 26, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, life: 1.6, r: 4 });
+      beep(240, .05, "sawtooth", .02);
+    }
+    // touch damage
+    if (d < e.r + p.r + 2){
+      p.hp -= 16 * dt;
+      G.shake = Math.min(8, G.shake + 3);
+    }
+  }
+  G.enemies = G.enemies.filter(e => e.hp > 0);
+
+  // enemy bullets
+  for (const b of G.ebullets){
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    if (Math.hypot(b.x - p.x, b.y - p.y) < p.r + b.r){
+      b.life = 0; p.hp -= 9; G.shake = Math.min(9, G.shake + 4);
+      spark(b.x, b.y, "#ff6b8a", 8, 150);
+      beep(180, .09, "square", .04);
+    }
+    if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30) b.life = 0;
+  }
+  G.ebullets = G.ebullets.filter(b => b.life > 0);
+
+  // zone damage
+  if (Math.hypot(p.x - G.zone.x, p.y - G.zone.y) > G.zone.r){
+    p.hp -= 7 * dt;
+    if (G.fx && Math.random() < .35) spark(p.x + rnd(-14, 14), p.y + rnd(-14, 14), "#8fe3ff", 1, 60);
+  }
+
+  p.hp = clamp(p.hp, 0, p.hpMax);
+  if (p.hp <= 0) return endMatch(false);
+
+  // particles
+  for (const q of G.parts){
+    q.age += dt; q.x += q.vx * dt; q.y += q.vy * dt;
+    q.vx *= .94; q.vy *= .94;
+  }
+  G.parts = G.parts.filter(q => q.age < q.life);
+
+  G.shake *= Math.pow(.0025, dt);
+
+  updateHud();
+}
+
+function updateHud(){
+  const p = G.player;
+  if (!p) return;
+  $("hud-hp").style.width = Math.max(0, (p.hp / p.hpMax) * 100) + "%";
+  $("hud-hp").style.background = p.hp > 55 ? "linear-gradient(90deg,#7ff0bd,#5ddba0)"
+                     : p.hp > 25 ? "linear-gradient(90deg,#ffe08a,#ffc44d)"
+                                 : "linear-gradient(90deg,#ff9db4,#ff5f85)";
+  $("hud-kills").textContent = "🎯 " + G.kills + "/" + G.need;
+  $("hud-time").textContent = "⏱ " + Math.max(0, Math.ceil(G.left));
+}
+
+/* ---------- render ---------- */
+function render(){
+  const p = G.player;
+  if (!p) return;
+  cx.save();
+  ctx_bg();
+  // shake
+  const sx = (Math.random() - .5) * G.shake, sy = (Math.random() - .5) * G.shake;
+  cx.translate(sx, sy);
+
+  // world background: grass + path
+  cx.fillStyle = "#bfe9d0"; cx.fillRect(-10, -10, W + 20, H + 20);
+  // grass texture (deterministic dots)
+  cx.fillStyle = "rgba(255,255,255,.34)";
+  for (let i = 0; i < 64; i++){
+    const gx = (i * 137.5) % W, gy = (i * 219.3) % H;
+    cx.beginPath(); cx.ellipse(gx, gy, 12, 6, i, 0, 7); cx.fill();
+  }
+  // arena border
+  cx.strokeStyle = "rgba(255,255,255,.75)"; cx.lineWidth = 6;
+  cx.strokeRect(3, 3, W - 6, H - 6);
+
+  // zone
+  cx.save();
+  cx.beginPath(); cx.rect(-50, -50, W + 100, H + 100);
+  cx.arc(G.zone.x, G.zone.y, G.zone.r, 0, Math.PI * 2, true);
+  cx.fillStyle = "rgba(90,120,150,.22)"; cx.fill();
+  cx.restore();
+  cx.beginPath(); cx.arc(G.zone.x, G.zone.y, G.zone.r, 0, Math.PI * 2);
+  cx.strokeStyle = "rgba(140,220,255,.95)"; cx.lineWidth = 4; cx.setLineDash([14, 10]);
+  cx.stroke(); cx.setLineDash([]);
+
+  // obstacles
+  (G.obstacles || []).forEach(o => {
+    if (o.kind === "tree"){
+      cx.fillStyle = "rgba(20,60,40,.20)";
+      cx.beginPath(); cx.ellipse(o.x, o.y + o.r * .8, o.r * .9, o.r * .35, 0, 0, 7); cx.fill();
+      cx.fillStyle = "#8a6a52";
+      cx.beginPath(); cx.roundRect ? cx.roundRect(o.x - 4, o.y - 2, 8, o.r, 4) : cx.rect(o.x - 4, o.y - 2, 8, o.r); cx.fill();
+      cx.fillStyle = "#7fd8a8";
+      cx.beginPath(); cx.arc(o.x, o.y - o.r * .5, o.r, 0, 7); cx.fill();
+      cx.fillStyle = "#a8f0c8";
+      cx.beginPath(); cx.arc(o.x - o.r * .3, o.y - o.r * .75, o.r * .55, 0, 7); cx.fill();
+      // sakura on tree
+      cx.fillStyle = "#ffc6dd";
+      cx.beginPath(); cx.arc(o.x + o.r * .35, o.y - o.r * .85, o.r * .18, 0, 7); cx.fill();
+    } else {
+      cx.fillStyle = "rgba(20,60,40,.18)";
+      cx.beginPath(); cx.ellipse(o.x, o.y + o.r * .7, o.r, o.r * .35, 0, 0, 7); cx.fill();
+      cx.fillStyle = "#d9d2e6"; cx.strokeStyle = "rgba(74,44,72,.2)"; cx.lineWidth = 2;
+      cx.beginPath(); cx.arc(o.x, o.y, o.r, 0, 7); cx.fill(); cx.stroke();
+      cx.fillStyle = "#eee8f7";
+      cx.beginPath(); cx.arc(o.x - o.r * .3, o.y - o.r * .3, o.r * .45, 0, 7); cx.fill();
+    }
+  });
+
+  // enemy bullets
+  for (const b of G.ebullets){
+    cx.fillStyle = "#ff8fa8";
+    cx.shadowColor = "#ff5f85"; cx.shadowBlur = 10;
+    cx.beginPath(); cx.arc(b.x, b.y, b.r, 0, 7); cx.fill();
+    cx.shadowBlur = 0;
+  }
+  // player bullets
+  for (const b of G.bullets){
+    cx.strokeStyle = "#fff3b0"; cx.lineWidth = 4; cx.lineCap = "round";
+    cx.shadowColor = "#ffd66b"; cx.shadowBlur = 12;
+    cx.beginPath(); cx.moveTo(b.x, b.y); cx.lineTo(b.x - b.vx * .014, b.y - b.vy * .014); cx.stroke();
+    cx.shadowBlur = 0;
+  }
+
+  // enemies
+  for (const e of G.enemies) drawChibi(cx, e.x, e.y, e.r, e.ang, e.sk, e.hurt > 0, e.walk, true);
+
+  // player
+  drawChibi(cx, p.x, p.y, p.r, p.ang, skinOf(S.skin), false, p.walk, false);
+
+  // particles
+  for (const q of G.parts){
+    const a = 1 - q.age / q.life;
+    cx.globalAlpha = Math.max(0, a);
+    cx.fillStyle = q.color;
+    cx.beginPath(); cx.arc(q.x, q.y, q.r * a + .6, 0, 7); cx.fill();
+  }
+  cx.globalAlpha = 1;
+
+  // zone warning
+  const dzz = Math.hypot(p.x - G.zone.x, p.y - G.zone.y);
+  if (dzz > G.zone.r){
+    cx.fillStyle = "rgba(140,220,255,.10)"; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = "rgba(30,90,120,.85)"; cx.font = "800 15px system-ui";
+    cx.textAlign = "center";
+    cx.fillText("⚠️ safe zone के अंदर जाओ!", W / 2, H * .22);
+  }
+  cx.restore();
+}
+function ctx_bg(){ /* background drawn inside render */ }
+
+/* ---------- loop ---------- */
+let lastT = 0;
+function loop(t){
+  const dt = Math.min(.033, (t - lastT) / 1000 || 0);
+  lastT = t;
+  if (current === "game" && G.run){
+    update(dt);
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------- match end ---------- */
+function endMatch(win){
+  if (G.over) return;
+  G.over = true;
+  const kills = G.kills;
+  const gain = kills * 12 + (win ? 60 : 10);
+  S.coins += gain;
+  S.matches++; S.kills += kills;
+  S.best = Math.max(S.best, kills);
+  if (win) S.wins++;
+  S.xp += kills * 14 + (win ? 40 : 8);
+  let leveled = false;
+  while (S.xp >= S.level * 100){ S.xp -= S.level * 100; S.level++; leveled = true; }
+  save();
+
+  const stars = kills >= 8 ? "⭐⭐⭐" : kills >= 5 ? "⭐⭐" : "⭐";
+  $("res-title").textContent = win ? "तुम जीत गए! 🌸" : "कोई बात नहीं 💗";
+  $("res-stars").textContent = stars;
+  $("res-sub").textContent = (win ? "शानदार खेल! " : "फिर कोशिश करो — तुम कर सकते हो! ") +
+    "kills: " + kills + (leveled ? " · 🎉 Level " + S.level : "");
+  $("res-reward").textContent = "+" + gain + " 🪙";
+  beep(win ? 880 : 300, .3, win ? "sine" : "triangle", .06);
+  setTimeout(() => { go("result"); }, 420);
+}
+
+$("btn-play").onclick = () => { initAudio(); startMatch(); };
+$("res-again").onclick = () => startMatch();
+$("res-home").onclick = () => go("lobby");
+$("btn-pause").textContent = "⏸";
+
+/* first paint */
+renderLobby();
+console.log("Sakura Strike v0.1 ready 🌸");
+</script>
+</body>
+</html>
