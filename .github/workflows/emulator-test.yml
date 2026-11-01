@@ -51,6 +51,9 @@ jobs:
             adb wait-for-device
             adb shell settings put global window_animation_scale 0 || true
             adb shell settings put system screen_off_timeout 1800000 || true
+            # emulator slow hai -> ANR dialogs band karo (warna screenshot me dialog aa jata hai)
+            adb shell settings put global anr_show_background 0 || true
+            adb shell settings put secure anr_show_background 0 || true
             adb shell svc power stayon true || true
             adb shell input keyevent KEYCODE_WAKEUP || true
             adb shell wm dismiss-keyguard || true
@@ -69,18 +72,25 @@ jobs:
             adb shell wm dismiss-keyguard || true
             adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" > screenshots/android/focus.txt || true
             # tour: lobby(1s) shop(9s) rank(17s) set(25s) match(33s) fire(36-44s) result(49s)
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/01-lobby.png
             sleep 8
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/02-shop.png
             sleep 8
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/03-ranks.png
             sleep 8
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/04-settings.png
             sleep 8
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/05-match.png
             sleep 6
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/06-match-play.png
             sleep 12
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
             adb exec-out screencap -p > screenshots/android/07-result.png
             adb logcat -d > screenshots/android/logcat-full.txt || true
             adb logcat -d -s SakuraStrike:* chromium:* AndroidRuntime:E > screenshots/android/logcat.txt || true

@@ -495,8 +495,9 @@ $("btn-reset").onclick = () => {
   let last = performance.now();
   (function loop(t){
     const dt = Math.min(.05, (t - last) / 1000); last = t;
+    // game chal raha ho to petals band (performance/battery)
+    if (reduce || current === "game") { last = t; requestAnimationFrame(loop); return; }
     x.clearRect(0, 0, innerWidth, innerHeight);
-    if (reduce) { requestAnimationFrame(loop); return; }
     for (const p of ps){
       p.y += p.vy * dt; p.x += p.vx * dt; p.a += p.va * dt;
       if (p.y > innerHeight + 30) Object.assign(p, newPetal(false));
