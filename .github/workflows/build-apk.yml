@@ -25,6 +25,13 @@ jobs:
         working-directory: android
         run: gradle assembleDebug --no-daemon --stacktrace
 
+      - name: Verify game assets APK me hain
+        working-directory: android
+        run: |
+          unzip -l app/build/outputs/apk/debug/app-debug.apk | grep -q "assets/index.html"
+          echo "OK: assets/index.html APK ke andar hai"
+          unzip -l app/build/outputs/apk/debug/app-debug.apk | grep assets/
+
       - name: Show APK
         working-directory: android
         run: ls -lh app/build/outputs/apk/debug/

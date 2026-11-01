@@ -30,9 +30,11 @@ android {
     }
 
     // ship the game files inside the APK
+    // NOTE: path app/ se relative hai -> repo root ka game/ folder = ../../game
     sourceSets {
         main {
-            assets.srcDirs += ['../game']
+            assets.srcDirs += ['../../game']
+            assets.srcDirs += [file('src/main/assets')]
         }
     }
 }
