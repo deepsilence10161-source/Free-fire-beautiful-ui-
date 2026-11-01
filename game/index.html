@@ -375,6 +375,7 @@ const screens = {};
 document.querySelectorAll(".screen").forEach(el => screens[el.id.replace("screen-", "")] = el);
 let current = "title";
 function go(name){
+  try{ console.log("SCREEN:" + name); }catch(e){}
   Object.values(screens).forEach(el => el.classList.remove("active"));
   if (screens[name]) screens[name].classList.add("active");
   current = name;
@@ -1052,6 +1053,22 @@ $("btn-play").onclick = () => { initAudio(); startMatch(); };
 $("res-again").onclick = () => startMatch();
 $("res-home").onclick = () => go("lobby");
 $("btn-pause").textContent = "⏸";
+
+/* ---- emulator live-test ke liye auto tour ---- */
+window.startTour = function(){
+  console.log("TOUR:start");
+  const steps = [
+    [ 800, function(){ go("lobby"); }],
+    [3000, function(){ go("shop"); }],
+    [5200, function(){ go("rank"); }],
+    [7400, function(){ go("set");   }],
+    [9600, function(){ startMatch(); }],
+    [11000, function(){ input.x = .9; input.y = -.4; input.firing = true; }],
+    [14500, function(){ input.firing = false; input.x = 0; input.y = 0; }],
+    [16000, function(){ endMatch(true); }]
+  ];
+  steps.forEach(function(st){ setTimeout(st[1], st[0]); });
+};
 
 /* first paint */
 renderLobby();

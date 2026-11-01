@@ -78,6 +78,18 @@ public class MainActivity extends Activity {
         });
 
         setContentView(webView);
+
+        final boolean tour = getIntent() != null && getIntent().getBooleanExtra("tour", false);
+        if (tour) {
+            webView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageFinished(WebView v, String url) {
+                    v.postDelayed(() -> v.evaluateJavascript(
+                            "window.startTour && window.startTour()", null), 600);
+                }
+            });
+        }
+
         webView.loadUrl("file:///android_asset/index.html");
         hideBars();
     }
