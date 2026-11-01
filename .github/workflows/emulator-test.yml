@@ -56,6 +56,12 @@ jobs:
             adb shell wm dismiss-keyguard || true
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
             mkdir -p screenshots/android
+            # pehle HOME screen ka screenshot -> pata chale ki display/screencap theek hai ya nahi
+            adb shell input keyevent KEYCODE_HOME || true
+            sleep 3
+            adb exec-out screencap -p > screenshots/android/00-home.png
+            adb shell dumpsys power | grep -E "mWakefulness=|Display Power" > screenshots/android/power.txt || true
+            adb shell dumpsys display | grep -E "mState=|Display Power" | head -5 >> screenshots/android/power.txt || true
             # poori app tour (lobby -> shop -> ranks -> settings -> match -> result)
             adb shell am start --ez tour true -n com.sakura.strike/.MainActivity
             sleep 14
