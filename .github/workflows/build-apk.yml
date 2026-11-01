@@ -16,15 +16,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.7 (AGP 8.5.x ke liye)
         uses: gradle/actions/setup-gradle@v5
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x android/gradlew || true
+        with:
+          gradle-version: '8.7'
 
       - name: Build debug APK
         working-directory: android
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Show APK
+        working-directory: android
+        run: ls -lh app/build/outputs/apk/debug/
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -32,7 +35,3 @@ jobs:
           name: SakuraStrike-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 30
-
-      - name: Show APK size
-        working-directory: android
-        run: ls -lh app/build/outputs/apk/debug/
