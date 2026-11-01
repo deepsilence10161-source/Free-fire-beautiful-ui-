@@ -65,21 +65,38 @@ jobs:
             adb exec-out screencap -p > screenshots/android/00-home.png
             adb shell dumpsys power | grep -E "mWakefulness=|Display Power" > screenshots/android/power.txt || true
             adb shell dumpsys display | grep -E "mState=|Display Power" | head -5 >> screenshots/android/power.txt || true
-            shot () {  # $1 = file, $2 = screen
-              adb shell am force-stop com.sakura.strike
-              adb shell am start --es screen "$2" -n com.sakura.strike/.MainActivity
-              sleep 12
-              adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
-              adb exec-out screencap -p > "screenshots/android/$1.png"
-            }
-            shot 01-lobby lobby
-            shot 02-shop shop
-            shot 03-ranks rank
-            shot 04-settings set
-            shot 05-match match
+            # har screen ko alag launch karo (shell function ke bina — dash compatible)
+            adb shell am force-stop com.sakura.strike
+            adb shell am start --es screen lobby -n com.sakura.strike/.MainActivity
+            sleep 12
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+            adb exec-out screencap -p > screenshots/android/01-lobby.png
+
+            adb shell am force-stop com.sakura.strike
+            adb shell am start --es screen shop -n com.sakura.strike/.MainActivity
+            sleep 12
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+            adb exec-out screencap -p > screenshots/android/02-shop.png
+
+            adb shell am force-stop com.sakura.strike
+            adb shell am start --es screen rank -n com.sakura.strike/.MainActivity
+            sleep 12
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+            adb exec-out screencap -p > screenshots/android/03-ranks.png
+
+            adb shell am force-stop com.sakura.strike
+            adb shell am start --es screen set -n com.sakura.strike/.MainActivity
+            sleep 12
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+            adb exec-out screencap -p > screenshots/android/04-settings.png
+
+            adb shell am force-stop com.sakura.strike
+            adb shell am start --es screen match -n com.sakura.strike/.MainActivity
+            sleep 14
+            adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+            adb exec-out screencap -p > screenshots/android/05-match.png
             sleep 6
             adb exec-out screencap -p > screenshots/android/06-match-play.png
-            adb logcat -d -s SakuraStrike:* > screenshots/android/app-log.txt || true
             adb logcat -d > screenshots/android/logcat-full.txt || true
             adb logcat -d -s SakuraStrike:* chromium:* AndroidRuntime:E > screenshots/android/logcat.txt || true
             adb shell dumpsys window | grep -E "mCurrentFocus" > screenshots/android/focus-after.txt || true
