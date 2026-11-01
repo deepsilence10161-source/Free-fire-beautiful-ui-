@@ -1062,15 +1062,16 @@ $("btn-pause").textContent = "⏸";
 /* ---- emulator live-test ke liye auto tour ---- */
 window.startTour = function(){
   console.log("TOUR:start");
+  // slow emulator ke liye aaram se: har screen 8 second
   const steps = [
-    [ 800, function(){ go("lobby"); }],
-    [3000, function(){ go("shop"); }],
-    [5200, function(){ go("rank"); }],
-    [7400, function(){ go("set");   }],
-    [9600, function(){ startMatch(); }],
-    [11000, function(){ input.x = .9; input.y = -.4; input.firing = true; }],
-    [14500, function(){ input.firing = false; input.x = 0; input.y = 0; }],
-    [16000, function(){ endMatch(true); }]
+    [ 1000, function(){ go("lobby"); }],
+    [ 9000, function(){ go("shop");  }],
+    [17000, function(){ go("rank");  }],
+    [25000, function(){ go("set");   }],
+    [33000, function(){ startMatch(); }],
+    [36000, function(){ input.x = .9; input.y = -.3; input.firing = true; }],
+    [44000, function(){ input.firing = false; input.x = 0; input.y = 0; }],
+    [49000, function(){ endMatch(true); }]
   ];
   steps.forEach(function(st){ setTimeout(st[1], st[0]); });
 };
