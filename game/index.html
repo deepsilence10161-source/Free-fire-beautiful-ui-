@@ -148,6 +148,7 @@
     box-shadow:0 0 0 2px rgba(255,255,255,.55)}
   .hpb>i{display:block;height:100%;width:100%;border-radius:99px;
     background:linear-gradient(90deg,#7ff0bd,#5ddba0);transition:width .18s}
+  #hud-time{margin-right:52px}
   .hud .badge{background:rgba(255,255,255,.94);color:var(--plum);border-radius:999px;padding:6px 12px;font-weight:900;font-size:14px;
     box-shadow:0 4px 0 rgba(0,0,0,.18)}
   .stick{
@@ -533,6 +534,8 @@ function resizeGame(){
 addEventListener("resize", () => { if (current === "game") resizeGame(); }, { passive:true });
 
 function startMatch(){
+  // screen ko pehle dikhao, tabhi canvas ko sahi size milega
+  go("game");
   resizeGame();
   G.run = true; G.paused = false; G.over = false;
   G.t = 0; G.left = 90; G.kills = 0; G.spawnT = .4;
@@ -544,15 +547,14 @@ function startMatch(){
     x: W / 2, y: H / 2, r: 17, hp: 100, hpMax: 100, ang: -Math.PI / 2,
     speed: Math.min(210, Math.max(150, Math.min(W, H) * .34)), cool: 0
   };
-  // obstacles
+  // obstacles (har match me naye)
+  G.obstacles = [];
   for (let i = 0; i < 7; i++){
     const ox = 40 + Math.random() * (W - 80), oy = 90 + Math.random() * (H - 180);
     if (Math.hypot(ox - G.player.x, oy - G.player.y) < 110) continue;
-    G.obstacles = (G.obstacles || []);
     G.obstacles.push({ x: ox, y: oy, r: 16 + Math.random() * 16, kind: Math.random() < .5 ? "tree" : "rock" });
   }
   updateHud();
-  go("game");
   initAudio();
   beep(520, .16, "sine");
 }
