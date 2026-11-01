@@ -64,22 +64,23 @@ jobs:
             adb shell dumpsys display | grep -E "mState=|Display Power" | head -5 >> screenshots/android/power.txt || true
             # poori app tour (lobby -> shop -> ranks -> settings -> match -> result)
             adb shell am start --ez tour true -n com.sakura.strike/.MainActivity
-            sleep 14
+            sleep 16
             adb shell input keyevent KEYCODE_WAKEUP || true
             adb shell wm dismiss-keyguard || true
             adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp" > screenshots/android/focus.txt || true
+            # tour: lobby(1s) shop(9s) rank(17s) set(25s) match(33s) fire(36-44s) result(49s)
             adb exec-out screencap -p > screenshots/android/01-lobby.png
-            sleep 3
+            sleep 8
             adb exec-out screencap -p > screenshots/android/02-shop.png
-            sleep 2
+            sleep 8
             adb exec-out screencap -p > screenshots/android/03-ranks.png
-            sleep 2
+            sleep 8
             adb exec-out screencap -p > screenshots/android/04-settings.png
-            sleep 3
+            sleep 8
             adb exec-out screencap -p > screenshots/android/05-match.png
-            sleep 4
+            sleep 6
             adb exec-out screencap -p > screenshots/android/06-match-play.png
-            sleep 3
+            sleep 12
             adb exec-out screencap -p > screenshots/android/07-result.png
             adb logcat -d > screenshots/android/logcat-full.txt || true
             adb logcat -d -s SakuraStrike:* chromium:* AndroidRuntime:E > screenshots/android/logcat.txt || true
